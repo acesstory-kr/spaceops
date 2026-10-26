@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
-const spaces=['홍대연습실','합정연습실','🎉 파티룸','밍글룸','혜화숙소','상수숙소'];
+const spaces=['홍대연습실','합정연습실','🎉 파티룸','밍글룸','혜화','상수'];
 const recommendations=['예약 · 청소 일정 누락 및 중복 확인','소화기 · 비상구 · 안전설비 확인','출입 비밀번호 · 도어락 배터리 확인','플랫폼 정산 · 미수금 확인','분실물 · 고객 문의 처리 확인','누수 · 냉난방 · 환기 상태 확인'];
 function monday(){const s=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});const d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10)}
 function shift(s:string,n:number){const d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}

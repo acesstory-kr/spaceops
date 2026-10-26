@@ -1,9 +1,10 @@
+import {shortSpaceName} from '../../space-labels';
 import {env} from '@/lib/storage';
 import {getChatGPTUser} from '../../chatgpt-auth';
 import {checkAirbnbURL,parseAirbnbICS} from '../../airbnb-calendar';
 import {fetchCalendar,syncSource,syncAll} from '../../calendar-sync';
 const json=(data:any,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
-export async function GET(){const u=await getChatGPTUser();if(!u)return json({error:'로그인이 필요합니다.'},401);const rows=await env.DB!.prepare("SELECT id,name,category,enabled,last_sync,last_error,result,CASE WHEN url LIKE 'manual:%' THEN 'file' ELSE 'url' END AS mode FROM calendar_sources WHERE owner=?").bind(u.userId).all();return json({sources:rows.results});}
+export async function GET(){const u=await getChatGPTUser();if(!u)return json({error:'로그인이 필요합니다.'},401);const rows=await env.DB!.prepare("SELECT id,name,category,enabled,last_sync,last_error,result,CASE WHEN url LIKE 'manual:%' THEN 'file' ELSE 'url' END AS mode FROM calendar_sources WHERE owner=?").bind(u.userId).all();return json({sources:rows.results.map((r:any)=>({...r,name:shortSpaceName(r.name)}))});}
 export async function POST(req:Request){const u=await getChatGPTUser();if(!u)return json({error:'로그인이 필요합니다.'},401);if(req.headers.get('origin')&&req.headers.get('origin')!==new URL(req.url).origin)return json({error:'요청 출처를 확인해주세요.'},403);
 if(req.headers.get('content-type')?.includes('multipart/form-data')){
  const form=await req.formData();const file=form.get('file');const name=String(form.get('name')||'').trim();const category=Number(form.get('category'));const sourceId=String(form.get('sourceId')||'');
