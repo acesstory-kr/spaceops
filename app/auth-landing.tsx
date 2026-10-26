@@ -7,7 +7,10 @@ export default function AuthLanding(){useEffect(()=>{
  const hash=new URLSearchParams(url.hash.slice(1));
  if(hash.get('type')!=='recovery')return;
  if(hash.has('error')||!hash.get('access_token')||!hash.get('refresh_token')){window.history.replaceState(null,'',url.pathname);window.location.replace('/forgot-password?error=expired');return;}
+ const accessToken=hash.get('access_token')!,refreshToken=hash.get('refresh_token')!;
+ // SSR browser clients always initialize in PKCE mode. Remove the implicit
+ // fragment before constructing the client, then validate it with setSession.
+ window.history.replaceState(null,'',url.pathname+url.search);
  const client=createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
- // Let the official SDK validate and store the recovery session before navigating.
- client.auth.getSession().then(({data,error})=>{window.history.replaceState(null,'',url.pathname);window.location.replace(!error&&data.session?'/reset-password':'/forgot-password?error=expired');}).catch(()=>{window.history.replaceState(null,'',url.pathname);window.location.replace('/forgot-password?error=expired');});
+ client.auth.setSession({access_token:accessToken,refresh_token:refreshToken}).then(({data,error})=>{window.location.replace(!error&&data.session?'/reset-password':'/forgot-password?error=expired');}).catch(()=>{window.location.replace('/forgot-password?error=expired');});
  },[]);return null;}
