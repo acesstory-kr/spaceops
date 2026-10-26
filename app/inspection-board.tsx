@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import {inspectionSamples} from '@/lib/inspection-presets';
 import {spaceNames,spaceColors} from './space-labels';
 import {periodKey} from '@/lib/inspection';
 import Checklists from './checklists';
@@ -7,7 +8,7 @@ const today=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});
 const cycles={daily:'일간',weekly:'주간',monthly:'월간'};
 export default function InspectionBoard({role,demo=false}:{role:string;demo?:boolean}){
  const [day,D]=useState(today),[space,C]=useState(0),[cycle,Y]=useState('all'),[data,S]=useState<any>({definitions:[],records:[]}),[error,E]=useState(''),[busy,B]=useState(false),[legacy,L]=useState(false);
- const sample=useRef<any>({definitions:spaceNames.slice(0,6).flatMap((_,category)=>['청결 상태','냉난방·누수 확인'].map((title,i)=>({id:'sample-'+category+'-'+i,category,title,cycle:'weekly',required:i===0,active:true}))),records:[]});
+ const sample=useRef<any>({definitions:inspectionSamples(),records:[]});
  const request=useRef(0);
  async function load(){const id=++request.current;E('');try{if(demo){S({...sample.current});return}const r=await fetch('/api/admin/inspections?day='+day,{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'점검표를 불러오지 못했습니다.');if(id===request.current)S(d)}catch(e:any){if(id===request.current)E(e.message)}}
  useEffect(()=>{load();return()=>{request.current++}},[day,demo]);
