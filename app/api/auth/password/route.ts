@@ -1,3 +1,4 @@
+import {cookies} from 'next/headers';
 import {supabase,allowedEmail} from '@/lib/supabase';
 const reply=(body:object,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 export async function POST(req:Request){
@@ -9,6 +10,7 @@ export async function POST(req:Request){
  if(!allowedEmail(email))return reply({message});
  const s=await supabase();const {error}=await s.auth.resetPasswordForEmail(email,{redirectTo:new URL('/auth/callback?next=/reset-password',req.url).toString()});
  if(error)return reply({error:'메일을 보내지 못했습니다. 잠시 후 다시 시도해주세요. 계속 실패하면 관리자에게 문의해주세요.'},429);
+ (await cookies()).set('spaceops-recovery','1',{httpOnly:true,secure:true,sameSite:'lax',path:'/',maxAge:3600});
  return reply({message});
 }
 export async function PATCH(req:Request){
@@ -19,5 +21,5 @@ export async function PATCH(req:Request){
  if(typeof b.password!=='string'||b.password.length<8||b.password.length>128)return reply({error:'비밀번호를 8~128자로 입력해주세요.'},400);
  const {error}=await s.auth.updateUser({password:b.password});
  if(error)return reply({error:'변경하지 못했습니다. 이전과 다른 비밀번호를 사용하거나 재설정 링크를 다시 받아주세요.'},400);
- await s.auth.signOut();return reply({ok:true});
+ await s.auth.signOut();(await cookies()).delete('spaceops-recovery');return reply({ok:true});
 }

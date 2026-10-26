@@ -1,3 +1,4 @@
+import AuthLanding from './auth-landing';
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -17,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"><AuthLanding/>{children}</body>
     </html>
   );
 }
