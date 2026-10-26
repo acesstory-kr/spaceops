@@ -14,10 +14,10 @@ CREATE TABLE IF NOT EXISTS sync_runs(id TEXT PRIMARY KEY,result TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS payroll_rates(owner TEXT PRIMARY KEY,data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS weekly_checks(id TEXT PRIMARY KEY,owner TEXT NOT NULL,category INTEGER NOT NULL,week TEXT NOT NULL,title TEXT NOT NULL,done INTEGER NOT NULL DEFAULT 0,note TEXT NOT NULL DEFAULT '',rowid BIGSERIAL,UNIQUE(owner,category,week,title));
 CREATE TABLE IF NOT EXISTS check_template_settings(owner TEXT NOT NULL,category INTEGER NOT NULL,data TEXT NOT NULL,PRIMARY KEY(owner,category));
-CREATE OR REPLACE FUNCTION json_extract(doc text,path text) RETURNS text LANGUAGE sql IMMUTABLE AS $$ SELECT doc::jsonb ->> substring(path from 3) $$;
-CREATE OR REPLACE FUNCTION json_extract(doc jsonb,path text) RETURNS text LANGUAGE sql IMMUTABLE AS $$ SELECT doc ->> substring(path from 3) $$;
-CREATE OR REPLACE FUNCTION json_each(doc text) RETURNS TABLE(value jsonb) LANGUAGE sql IMMUTABLE AS $$ SELECT jsonb_array_elements(doc::jsonb) $$;
-CREATE OR REPLACE FUNCTION json_set(doc text,VARIADIC pairs text[]) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE OR REPLACE FUNCTION json_extract(doc text,path text) RETURNS text LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,spaceops AS $$ SELECT doc::jsonb ->> substring(path from 3) $$;
+CREATE OR REPLACE FUNCTION json_extract(doc jsonb,path text) RETURNS text LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,spaceops AS $$ SELECT doc ->> substring(path from 3) $$;
+CREATE OR REPLACE FUNCTION json_each(doc text) RETURNS TABLE(value jsonb) LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,spaceops AS $$ SELECT jsonb_array_elements(doc::jsonb) $$;
+CREATE OR REPLACE FUNCTION json_set(doc text,VARIADIC pairs text[]) RETURNS text LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,spaceops AS $$
 DECLARE result jsonb:=doc::jsonb; i integer; k text;
 BEGIN FOR i IN 1..array_length(pairs,1) BY 2 LOOP k:=substring(pairs[i] from 3); result:=jsonb_set(result,ARRAY[k],CASE WHEN k='category' THEN to_jsonb(pairs[i+1]::integer) ELSE to_jsonb(pairs[i+1]) END,true); END LOOP; RETURN result::text; END $$;
 REVOKE ALL ON SCHEMA spaceops FROM anon,authenticated;

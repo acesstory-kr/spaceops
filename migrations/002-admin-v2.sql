@@ -1,4 +1,4 @@
--- APPLY ONLY AFTER VERIFIED FULL DB BACKUP. This file is never run by app startup.
+-- APPLY ONLY AFTER VERIFIED BACKUP OF THE AFFECTED APPLICATION TABLES. This file is never run by app startup.
 -- Use the Supabase SQL editor with its existing admin connection. Keep SPACEOPS_ADMIN_V2 unset until validation.
 BEGIN;
 CREATE TABLE IF NOT EXISTS spaceops.workspace_members(email text PRIMARY KEY,display_name text NOT NULL,role text NOT NULL CHECK(role IN ('manager','staff')),spaces text NOT NULL,active boolean NOT NULL DEFAULT true,updated text NOT NULL);
@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS spaceops.settlements(id text PRIMARY KEY,data text NO
 CREATE UNIQUE INDEX IF NOT EXISTS settlement_task_person ON spaceops.settlements ((data::jsonb->>'task'),(coalesce(nullif(data::jsonb->>'workerEmail',''),data::jsonb->>'person')));
 DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='spaceops_runtime') THEN CREATE ROLE spaceops_runtime NOLOGIN NOBYPASSRLS; END IF; END $$;
 GRANT USAGE ON SCHEMA spaceops TO spaceops_runtime;
-GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA spaceops TO spaceops_runtime;
+GRANT SELECT,INSERT,UPDATE,DELETE ON spaceops.tasks,spaceops.photos,spaceops.workspace_members,spaceops.photo_metadata,spaceops.task_reviews,spaceops.inspection_definitions,spaceops.inspection_records,spaceops.settlements,spaceops.weekly_checks,spaceops.check_template_settings,spaceops.payroll_rates TO spaceops_runtime;
+GRANT SELECT ON spaceops.calendar_sources,spaceops.sync_items TO spaceops_runtime;
 GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA spaceops TO spaceops_runtime;
 -- Grant only membership to the existing runtime DB login, do not change its password.
 DO $$ BEGIN EXECUTE format('GRANT spaceops_runtime TO %I',current_user); END $$;
@@ -71,8 +72,25 @@ DROP POLICY IF EXISTS app_templates_read ON spaceops.check_template_settings;
 CREATE POLICY app_templates_read ON spaceops.check_template_settings FOR SELECT TO spaceops_runtime USING(spaceops.actor_role()='owner' OR coalesce(nullif(current_setting('spaceops.spaces',true),''),'[]')::jsonb @> jsonb_build_array(category));
 DROP POLICY IF EXISTS app_templates_write ON spaceops.check_template_settings;
 CREATE POLICY app_templates_write ON spaceops.check_template_settings FOR ALL TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
-REVOKE ALL ON ALL TABLES IN SCHEMA spaceops FROM anon,authenticated;
+REVOKE ALL ON spaceops.workspace_members,spaceops.photo_metadata,spaceops.task_reviews,spaceops.inspection_definitions,spaceops.inspection_records,spaceops.settlements FROM anon,authenticated;
 COMMIT;
 -- Does not insert sykimcj or reassign legacy/private records. Manager proposal requires separate approval.
 -- Rollback application first: unset SPACEOPS_ADMIN_V2 and return to prior deployment.
 -- Preserve additive tables/metadata as backup. Do not delete records or disable policies without separate review.
+
+
+BEGIN;
+GRANT SELECT,INSERT,UPDATE,DELETE ON spaceops.calendar_sources TO spaceops_runtime;
+ALTER TABLE spaceops.calendar_sources ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_calendar_owner ON spaceops.calendar_sources;
+CREATE POLICY app_calendar_owner ON spaceops.calendar_sources TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
+ALTER FUNCTION spaceops.json_extract(text,text) SET search_path=pg_catalog,spaceops;
+ALTER FUNCTION spaceops.json_extract(jsonb,text) SET search_path=pg_catalog,spaceops;
+ALTER FUNCTION spaceops.json_each(text) SET search_path=pg_catalog,spaceops;
+ALTER FUNCTION spaceops.json_set(text,text[]) SET search_path=pg_catalog,spaceops;
+ALTER FUNCTION spaceops.actor_role() SET search_path=pg_catalog,spaceops;
+ALTER FUNCTION spaceops.actor_email() SET search_path=pg_catalog,spaceops;
+ALTER FUNCTION spaceops.actor_id() SET search_path=pg_catalog,spaceops;
+ALTER FUNCTION spaceops.can_read_task(text,integer,text) SET search_path=pg_catalog,spaceops;
+ALTER FUNCTION spaceops.guard_staff_task() SET search_path=pg_catalog,spaceops;
+COMMIT;
