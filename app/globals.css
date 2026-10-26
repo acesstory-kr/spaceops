@@ -37,3 +37,46 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
 @media(max-width:650px){.mobile-bottom-nav button{display:flex;flex-direction:column;gap:4px;min-height:52px;font-size:11px}.events button{min-height:38px!important;padding:4px 2px!important;line-height:1.3;white-space:normal!important}.events .calendar-event-space,.events .calendar-event-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:9px;line-height:1.4}.calendar-event-time{display:none}.days{grid-auto-rows:minmax(100px,auto)}.photo-capture-groups{gap:8px}.photo-capture-groups>div{padding:9px}.photo-capture-groups .btn{min-height:42px;padding:9px;font-size:11px}.admin-tabs{grid-template-columns:1fr 1fr;gap:8px}.admin-tabs button{min-height:70px}.admin-form{grid-template-columns:1fr;padding:14px}.admin-form>*{grid-column:1!important}.admin-photo-list>article{padding:13px}.compare-photos{grid-template-columns:1fr}.headright{flex-wrap:wrap}.headright button{font-size:11px}.request{line-height:1.6}.home-daily-work .detailtitle h2{font-size:20px}.admin-filters{align-items:stretch}.admin-filters>label{flex:1 1 130px}.home-daily-work .day-controls{flex-wrap:wrap}}
 
 .selectable-photo{aspect-ratio:auto}.photo-uploaded-time{display:block;font-size:9px;line-height:1.5;padding:4px;background:#fff;overflow-wrap:anywhere}
+
+/* Layout refinement: original space colors and shared work cards are unchanged. */
+.monthnav .month-title{font-size:23px;font-weight:700;border:0;background:transparent;white-space:nowrap}
+.monthnav input[type=month]{max-width:180px}
+.summary-heading{display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px!important}
+.summary-heading small{font-size:10px;color:#989aa4;white-space:nowrap}
+.mobile-detail-icon{display:none}
+.calendar-daily{margin-top:28px}
+.events .calendar-event-title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden}
+@media(min-width:981px){
+ .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto}
+ .calendar-daily .taskhead{padding:16px 20px}
+ .calendar-daily .taskbody{padding:16px 20px}
+}
+@media(max-width:980px){
+ .shell>header{gap:6px;padding-top:8px;padding-bottom:8px}
+ .brand p{display:none}
+ .monthnav{gap:6px;flex-wrap:wrap}
+ .monthnav .month-title{font-size:18px;padding:4px 8px}
+ .today-summary{padding:9px 12px;margin-bottom:8px}
+ .today-summary h3{font-size:14px}
+ .today-summary>div:not(.summary-heading){gap:6px}
+ .today-summary>div:not(.summary-heading)>div{padding:7px 4px}
+ .today-summary b{font-size:20px}
+ .today-summary span{font-size:11px}
+ .home-toolbar{margin-bottom:8px}
+ .home-toolbar>div{display:none}
+ .home-toolbar .search{max-width:none;flex:1}
+ .home-daily-work .detailtitle{margin-bottom:8px}
+ .home-daily-work .detailtitle h2{margin-top:2px;font-size:20px}
+ .home-daily-work .day-controls{margin:6px 0;gap:5px;display:flex}
+ .home-daily-work .day-controls button{min-height:44px;flex:1;padding:7px 4px;white-space:nowrap;font-size:12px}
+ .home-daily-work .progress{margin:7px 0 10px}
+ .home-daily-work .task{margin-bottom:10px}
+ .home-daily-work .taskhead{padding:10px 12px}
+ .home-daily-work .taskhead h3{margin:4px 0;font-size:17px}
+ .home-daily-work .taskbody{padding:9px 10px}
+ .home-daily-work .inline-note{margin:8px 0}
+ .home-daily-work .detailtip{margin-top:10px;padding:10px}
+ .taskhead .icon{min-width:44px;min-height:44px;padding:8px}
+ .desktop-detail-label{display:none}
+ .mobile-detail-icon{display:block}
+}
