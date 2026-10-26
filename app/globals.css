@@ -108,3 +108,41 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
 .admin-panel .inspection-admin-list>article{margin:0}
 .inspection-management{padding:14px;margin-bottom:14px}
 @media(max-width:650px){.admin-panel .admin-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-panel .admin-tabs button{font-size:12px;gap:6px}.admin-panel .inspection-admin-list{grid-template-columns:1fr}.admin-panel .admin-title{padding:12px}.admin-panel .admin-form{padding:12px}.inspection-management{padding:10px}}
+
+/* Mobile v2, based on 3cc9f1c. Desktop layout and original controls remain intact. */
+.mobile-brand-name,.mobile-date-trigger,.mobile-inspection-cycle,.mobile-save-icon{display:none}
+@media(max-width:980px){
+ .shell>header .brand{display:flex;gap:7px}
+ .brand-copy h1,.brand-copy p{display:none}
+ .mobile-brand-name{display:inline;font-size:15px;font-weight:700}
+ .shell:not([data-view="캘린더"])>header .monthnav{display:none}
+ .shell>header{height:auto;min-height:60px;padding:8px 10px;gap:6px}
+ .shell>header .headright{margin-left:auto}
+ .shell .today-summary{display:none}
+ .shell[data-view="오늘의 할 일"] .toolbar .search,
+ .shell[data-view="캘린더"] .toolbar .search,
+ .shell[data-view="주간 점검"] .toolbar .search{display:none}
+ .shell[data-view="캘린더"] .toolbar>div{display:none}
+ .shell[data-view="오늘의 할 일"] .toolbar,
+ .shell[data-view="캘린더"] .toolbar,
+ .shell[data-view="주간 점검"] .toolbar{justify-content:flex-end;margin-bottom:4px}
+ .home-daily-work .tomorrow-control{display:none}
+ .home-daily-work .day-controls{display:flex;flex-wrap:nowrap;gap:5px}
+ .home-daily-work .day-controls button{min-height:44px;font-size:12px;padding:6px;flex:1}
+ .mobile-date-trigger{display:grid;place-items:center;position:relative;flex:0 0 44px;width:44px;height:44px;overflow:hidden;border:1px solid #e4e5e9;background:white;border-radius:9px;cursor:pointer}
+ .mobile-date-trigger input,.inspection-board .weekly-nav .mobile-date-trigger input{position:absolute;inset:0;opacity:0;width:100%;height:100%;min-width:0;max-width:100%;padding:0;cursor:pointer}
+ .mobile-date-trigger input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+ .desktop-inspection-date,.desktop-inspection-cycle{display:none}
+ .inspection-board .weekly-nav{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+ .inspection-board .weekly-nav>button{font-size:12px;min-height:44px;padding:6px}
+ .inspection-board .weekly-nav>b{font-size:12px}
+ .inspection-board .mobile-inspection-cycle{display:flex;align-items:center;gap:5px;margin:0 0 0 auto}
+ .mobile-inspection-cycle label{font-size:10px;gap:2px}
+ .mobile-inspection-cycle select{font-size:12px;min-height:44px;padding:6px}
+ .mobile-inspection-cycle button{font-size:11px;min-height:44px;padding:6px}
+ .inspection-body form{display:flex;flex-wrap:nowrap;align-items:flex-start;gap:4px;margin-top:6px}
+ .inspection-body form textarea{flex:1 1 auto;flex-basis:auto;min-width:0;padding:8px}
+ .inspection-body form .inspection-note-save{flex:0 0 44px;width:44px;height:44px;min-height:44px;border:0;padding:8px;background:transparent}
+ .inspection-note-save span{display:none}
+ .mobile-save-icon{display:block}
+}

@@ -20,7 +20,7 @@ const day=document.querySelector('.day[aria-label="2026-10-27"]');
 if(day){await act(async()=>day.click());assert(document.querySelector('.calendar'));assert(document.querySelector('.calendar-daily').textContent.includes('청소'));}
 await act(async()=>root.unmount());
 desktop=false;const r=createRoot(document.getElementById('root'));await act(async()=>r.render(React.createElement(Dashboard,{demo:true})));
-assert(!document.querySelector('.calendar'));assert(document.querySelector('.today-summary'));
+assert(!document.querySelector('.calendar'));assert(document.querySelector('.today-summary'));assert(document.querySelector('.brandmark svg'));assert(document.querySelector('.mobile-date-trigger input[aria-label="업무 날짜 선택"]'));assert(document.querySelector('.tomorrow-control'));
 const next=document.querySelector('[aria-label="다음 날 업무"]');await act(async()=>next.click());
 assert(document.querySelector('.progressline').textContent.includes('선택한 날'));
 await act(async()=>[...document.querySelectorAll('.monthnav button')].find(b=>b.textContent==='오늘').click());
