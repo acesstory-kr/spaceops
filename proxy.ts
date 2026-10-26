@@ -1,6 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
 const canonicalHost='spaceops-keay333-7201.vercel.app';
 export function proxy(req:NextRequest){
+ if(process.env.VERCEL_ENV==='preview'&&req.nextUrl.pathname.startsWith('/api/')&&!req.nextUrl.pathname.startsWith('/api/auth/')&&!['GET','HEAD','OPTIONS'].includes(req.method))return NextResponse.json({error:'미리보기에서는 운영 기록을 변경하지 않습니다. 운영 적용 승인 후 이용할 수 있습니다.'},{status:403});
  // Start browser navigation on the same origin used by the email provider.
  // The PKCE verifier and recovery intent cookies must remain on that origin.
  if((req.method==='GET'||req.method==='HEAD')&&req.nextUrl.hostname==='spaceops-alpha.vercel.app'){
