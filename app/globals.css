@@ -108,3 +108,38 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
 .admin-panel .inspection-admin-list>article{margin:0}
 .inspection-management{padding:14px;margin-bottom:14px}
 @media(max-width:650px){.admin-panel .admin-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-panel .admin-tabs button{font-size:12px;gap:6px}.admin-panel .inspection-admin-list{grid-template-columns:1fr}.admin-panel .admin-title{padding:12px}.admin-panel .admin-form{padding:12px}.inspection-management{padding:10px}}
+
+.inspection-topbar{display:contents}
+.inspection-date-picker{display:flex;align-items:center}
+.inspection-date-picker>svg{display:none}
+.inspection-note-save svg{display:none}
+@media(max-width:980px){
+ .shell>header .brand{display:none}
+ .shell:not([data-view="캘린더"])>header .monthnav{display:none}
+ .shell>header .headright{margin-left:auto}
+ .shell .today-summary{display:none}
+ .shell[data-view="오늘의 할 일"] .toolbar .search,
+ .shell[data-view="캘린더"] .toolbar .search,
+ .shell[data-view="주간 점검"] .toolbar .search{display:none}
+ .shell[data-view="캘린더"] .toolbar>div{display:none}
+ .shell[data-view="오늘의 할 일"] .toolbar,
+ .shell[data-view="캘린더"] .toolbar{justify-content:flex-end;margin-bottom:4px}
+ .home-daily-work .tomorrow-control{display:none}
+ .inspection-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+ .inspection-topbar .weekly-nav{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:0}
+ .inspection-topbar .weekly-nav button{padding:7px 8px;font-size:12px;min-height:44px}
+ .inspection-topbar .weekly-nav b{font-size:12px}
+ .inspection-date-picker{position:relative;width:44px;height:44px;border:1px solid #e4e5e9;border-radius:9px;display:grid;place-items:center;background:white;overflow:hidden}
+ .inspection-date-picker>svg{display:block}
+ .inspection-topbar .inspection-date-picker input{position:absolute;inset:0;width:100%;height:100%;min-width:0;opacity:0;padding:0;cursor:pointer}
+ .inspection-date-picker input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+ .inspection-topbar .inspection-cycle{margin:0 0 0 auto;gap:6px;align-items:center}
+ .inspection-cycle label{font-size:10px;gap:2px}
+ .inspection-cycle select{min-height:44px;padding:6px;font-size:12px}
+ .inspection-cycle button{font-size:11px;min-height:44px;padding:6px 8px}
+ .inspection-body form{display:flex;flex-wrap:nowrap;align-items:flex-start;gap:4px;margin-top:6px}
+ .inspection-body form textarea{flex:1 1 auto;min-width:0;flex-basis:auto;padding:8px}
+ .inspection-body form .inspection-note-save{flex:0 0 44px;width:44px;height:44px;padding:8px;border:0;background:transparent;color:#777}
+ .inspection-note-save svg{display:block}
+ .inspection-note-save span{display:none}
+}
