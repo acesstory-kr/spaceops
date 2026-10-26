@@ -1,5 +1,5 @@
 /* Cache only public, non-personal assets. Never cache API, auth or HTML data. */
-const VERSION='spaceops-public-v1';
+const VERSION='spaceops-public-v2';
 const PUBLIC=['/offline.html','/icons/icon-192.png','/icons/icon-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png','/favicon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(VERSION).then(cache=>cache.addAll(PUBLIC)));});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('spaceops-public-')&&key!==VERSION)await caches.delete(key);await self.clients.claim();})());});
