@@ -146,3 +146,30 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
  .inspection-note-save span{display:none}
  .mobile-save-icon{display:block}
 }
+
+.mobile-header-refresh{display:none}
+@media(max-width:980px){
+ .shell>header .mobile-header-refresh{display:inline-flex;width:44px;height:44px;min-height:44px;padding:10px}
+ .shell[data-view="오늘의 할 일"] .toolbar,
+ .shell[data-view="캘린더"] .toolbar{display:none}
+ .shell[data-view="주간 업무"] .toolbar .search{display:none}
+ .shell[data-view="주간 업무"] .toolbar>.icon,
+ .shell[data-view="주간 점검"] .toolbar>.icon{display:none}
+ .shell[data-view="주간 업무"] .toolbar,
+ .shell[data-view="주간 점검"] .toolbar{margin-bottom:8px;justify-content:flex-end}
+ .shell[data-view="주간 업무"] .toolbar .eyebrow,
+ .shell[data-view="주간 점검"] .toolbar .eyebrow{display:none}
+ .shell[data-view="주간 업무"] .toolbar h2,
+ .shell[data-view="주간 점검"] .toolbar h2{font-size:18px;margin:0}
+ .shell .workspace main{padding-top:10px}
+ .home-daily-work .detailtitle{margin-bottom:6px}
+ .home-daily-work .detailtitle h2{font-size:20px;margin-top:2px}
+ .weekly-tasks>.weekly-nav{justify-content:flex-end;margin-top:0;margin-bottom:6px;gap:5px}
+ .weekly-tasks>.weekly-nav button{font-size:12px;min-height:44px;padding:6px 8px}
+ .weekly-tasks>.hint{margin-top:5px;line-height:1.5;font-size:11px}
+ .weekly-tasks>.weekly-days{margin-top:8px}
+ .weekly-day-title,.home-daily-work .detailtitle{border-bottom:1px solid #ece8ec;padding-bottom:8px}
+ .inspection-board .weekly-nav{justify-content:flex-end;margin-bottom:8px}
+ .inspection-spaces{margin:8px 0}
+ .home-daily-work .task,.weekly-day{border-radius:12px}
+}

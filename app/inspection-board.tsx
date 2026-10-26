@@ -12,7 +12,7 @@ export default function InspectionBoard({role,demo=false}:{role:string;demo?:boo
  const sample=useRef<any>({definitions:inspectionSamples(),records:[]});
  const request=useRef(0);
  async function load(){const id=++request.current;E('');try{if(demo){S({...sample.current});return}const r=await fetch('/api/admin/inspections?day='+day,{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'점검표를 불러오지 못했습니다.');if(id===request.current)S(d)}catch(e:any){if(id===request.current)E(e.message)}}
- useEffect(()=>{load();return()=>{request.current++}},[day,demo]);
+ useEffect(()=>{load();const refresh=()=>load();window.addEventListener('spaceops-refresh',refresh);return()=>{request.current++;window.removeEventListener('spaceops-refresh',refresh)}},[day,demo]);
  const categories=Array.from(new Set<number>(data.definitions.map((d:any)=>d.category))).sort();
  const selectedSpace=categories.includes(space)?space:categories[0];
  const defs=data.definitions.filter((d:any)=>d.active&&d.category===selectedSpace&&(cycle==='all'||d.cycle===cycle));
