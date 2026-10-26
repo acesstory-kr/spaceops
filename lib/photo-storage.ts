@@ -1,0 +1,9 @@
+import {createClient} from '@supabase/supabase-js';
+import {createHmac,timingSafeEqual} from 'node:crypto';
+const bucket='spaceops-photos';
+function admin(){return createClient(process.env.SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!,{auth:{persistSession:false,autoRefreshToken:false}});}
+export function receipt(data:any){const text=Buffer.from(JSON.stringify(data)).toString('base64url');return text+'.'+createHmac('sha256',process.env.SUPABASE_SERVICE_ROLE_KEY!).update('spaceops-upload:'+text).digest('base64url');}
+export function verifyReceipt(token:string){if(typeof token!=='string'||token.length>4000)throw Error('업로드 확인 정보가 올바르지 않습니다.');const [text,mac]=token.split('.');if(!text||!mac)throw Error('업로드 확인 정보가 없습니다. 사진을 다시 선택해주세요.');const expected=createHmac('sha256',process.env.SUPABASE_SERVICE_ROLE_KEY!).update('spaceops-upload:'+text).digest();const actual=Buffer.from(mac,'base64url');if(actual.length!==expected.length||!timingSafeEqual(expected,actual))throw Error('업로드 확인 정보가 일치하지 않습니다.');const d=JSON.parse(Buffer.from(text,'base64url').toString());if(d.expires<Date.now())throw Error('업로드 시간이 만료되었습니다. 다시 시도해주세요.');return d;}
+export async function signPhoto(id:string){const {data,error}=await admin().storage.from(bucket).createSignedUploadUrl(id,{upsert:false});if(error||!data)throw Error('사진 저장소 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');return data.signedUrl;}
+export async function inspectPhoto(id:string){const {data,error}=await admin().storage.from(bucket).download(id);if(error||!data)throw Error('사진 파일 저장이 확인되지 않았습니다. 다시 시도해주세요.');return {type:data.type,size:data.size,bytes:new Uint8Array(await data.arrayBuffer())};}
+export async function signedPhoto(id:string){const {data,error}=await admin().storage.from(bucket).createSignedUrl(id,60);if(error||!data)throw Error('사진을 열지 못했습니다.');return data.signedUrl;}

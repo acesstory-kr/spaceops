@@ -1,0 +1,1 @@
+export function periodKey(day:string,cycle:string){if(cycle==='monthly')return day.slice(0,7);if(cycle==='daily')return day;const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10);}

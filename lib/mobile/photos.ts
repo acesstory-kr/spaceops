@@ -1,0 +1,10 @@
+// Browser adapter; replace this module with a native Camera adapter when packaging.
+export async function preparePhoto(file:File){
+ if(!file.type.startsWith('image/')&&!/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name))throw Error('사진 파일을 선택해주세요.');
+ let bitmap:ImageBitmap;try{bitmap=await createImageBitmap(file,{imageOrientation:'from-image'})}catch{throw Error('이 사진 형식을 열지 못했습니다. HEIC/HEIF라면 JPG로 변환하거나 카메라 호환성 설정을 확인해주세요.')}
+ try{const scale=Math.min(1,2000/Math.max(bitmap.width,bitmap.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));const ctx=canvas.getContext('2d');if(!ctx)throw Error('사진 변환을 지원하지 않는 브라우저입니다.');ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',.84));if(!blob||blob.size>8*1024*1024)throw Error('사진이 너무 큽니다. 작은 사진으로 다시 선택해주세요.');return new File([blob],file.name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});}finally{bitmap.close()}
+}
+export async function uploadPhoto(task:string,file:File,phase:string,retryReceipt?:string){
+ let token=retryReceipt;if(!token){const r=await fetch('/api/photos/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,name:file.name,type:file.type,size:file.size,phase})});const b=await r.json();if(!r.ok)throw Error(b.error||'업로드 준비에 실패했습니다.');token=b.receipt;const response=await fetch(b.url,{method:'PUT',headers:{'Content-Type':file.type,'x-upsert':'false'},body:file});if(!response.ok)throw Error('사진 전송에 실패했습니다. 인터넷 연결을 확인해주세요.');}
+ try{const r=await fetch('/api/photos/finalize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({receipt:token})});const result=await r.json();if(!r.ok||!result.stored)throw Object.assign(Error(result.error||'기록 저장을 확인하지 못했습니다.'),{nonRetryable:r.status<500});return result;}catch(e){throw Object.assign(e instanceof Error?e:Error('사진 기록 저장 실패'),{receipt:(e as any)?.nonRetryable?undefined:token});}
+}

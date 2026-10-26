@@ -1,0 +1,4 @@
+import {env} from './storage';
+import {allowedEmail} from './supabase';
+import {adminV2,OWNER_EMAIL,type Role} from './access';
+export async function memberFor(email:string){email=email.toLowerCase();if(email===OWNER_EMAIL&&allowedEmail(email))return {email,role:'owner' as Role,display_name:'최고 관리자',spaces:[0,1,2,3,4,5],active:true};if(adminV2()){const row:any=await env.DB.prepare('SELECT email,role,display_name,spaces,active FROM workspace_members WHERE email=?').bind(email).first();if(!row)return allowedEmail(email)?{email,role:'manager' as Role,display_name:email,spaces:[0,1,2,3,4,5],active:true}:null;if(!row.active)return null;return {...row,spaces:typeof row.spaces==='string'?JSON.parse(row.spaces):row.spaces};}return allowedEmail(email)?{email,role:'manager' as Role,display_name:email,spaces:[0,1,2,3,4,5],active:true}:null;}

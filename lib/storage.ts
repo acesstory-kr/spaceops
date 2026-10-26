@@ -1,3 +1,4 @@
+import type {Actor} from './access';
 import postgres from 'postgres';
 let client:ReturnType<typeof postgres>|undefined;
 function sql(){return client??=postgres(process.env.POSTGRES_URL!,{ssl:'require',prepare:false,max:3,idle_timeout:20,connect_timeout:15});}
@@ -29,8 +30,8 @@ export function translate(input:string){let n=0,inString=false,out='';for(let i=
  out=out.replace(/(\$\d+) IS NOT NULL/g,'$1::integer IS NOT NULL');
  out=out.replace(/CASE WHEN (\$\d+)=6/g,'CASE WHEN $1::integer=6');
  return out;}
-class Statement{constructor(public query:string,public args:any[]=[]){ }bind(...args:any[]){return new Statement(this.query,args);}async all(){const r=await DB.batch([this]);return r[0];}async first(){return (await this.all()).results[0]??null;}async run(){return this.all();}}
-const DB={prepare:(query:string)=>new Statement(query),async batch(statements:Statement[]){await ensure();return sql().begin(async tx=>{if(process.env.VERCEL_ENV==='preview')await tx.unsafe('SET TRANSACTION READ ONLY');await tx.unsafe('SET LOCAL search_path TO spaceops');const results=[];for(const s of statements){const rows=await tx.unsafe(translate(s.query),s.args);results.push({results:Array.from(rows),meta:{changes:rows.count}});}return results;});}};
+class Statement{constructor(public query:string,public args:any[]=[],public actor?:Actor){ }bind(...args:any[]){return new Statement(this.query,args,this.actor);}async all(){const r=await DB.batch([this]);return r[0];}async first(){return (await this.all()).results[0]??null;}async run(){return this.all();}}
+const DB={prepare:(query:string)=>new Statement(query),async batch(statements:Statement[]){await ensure();return sql().begin(async tx=>{if(process.env.VERCEL_ENV==='preview')await tx.unsafe('SET TRANSACTION READ ONLY');await tx.unsafe('SET LOCAL search_path TO spaceops');const actor=statements[0]?.actor;if(process.env.SPACEOPS_ADMIN_V2==='1'&&actor){await tx.unsafe('SET LOCAL ROLE spaceops_runtime');await tx.unsafe("SELECT set_config('spaceops.email',$1,true),set_config('spaceops.user_id',$2,true),set_config('spaceops.role',$3,true),set_config('spaceops.spaces',$4,true)",[actor.email,actor.userId,actor.role,JSON.stringify(actor.spaces)]);}const results=[];for(const s of statements){const rows=await tx.unsafe(translate(s.query),s.args);results.push({results:Array.from(rows),meta:{changes:rows.count}});}return results;});}};
 function storageHeaders(){return {apikey:process.env.SUPABASE_SERVICE_ROLE_KEY!,Authorization:'Bearer '+process.env.SUPABASE_SERVICE_ROLE_KEY!};}
 let bucketReady:Promise<void>|undefined;
 async function bucket(){if(process.env.VERCEL_ENV==='preview')return;await (bucketReady??=fetch(process.env.SUPABASE_URL+'/storage/v1/bucket',{method:'POST',headers:{...storageHeaders(),'Content-Type':'application/json'},body:JSON.stringify({id:'spaceops-photos',name:'spaceops-photos',public:false,file_size_limit:8388608,allowed_mime_types:['image/jpeg','image/png','image/webp']})}).then(async r=>{if(!r.ok&&r.status!==409){const b=await r.json();if(!String(b.message||b.error).includes('already exists'))throw Error('사진 저장소를 초기화하지 못했습니다.');}}).catch(e=>{bucketReady=undefined;throw e}));}
@@ -38,3 +39,5 @@ const BUCKET={async put(id:string,body:ArrayBuffer,options:any){await bucket();c
 export const env={DB,BUCKET};
 
 export async function verifyStorage(){await bucket();const r=await fetch(process.env.SUPABASE_URL+"/storage/v1/bucket/spaceops-photos",{headers:storageHeaders(),cache:"no-store"});if(!r.ok)throw Error("Storage check failed");const b=await r.json();return b.public===false;}
+
+export function dbFor(actor:Actor){return {prepare:(query:string)=>new Statement(query,[],actor),batch:(statements:Statement[])=>DB.batch(statements)}}

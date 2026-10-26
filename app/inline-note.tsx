@@ -1,0 +1,3 @@
+'use client';
+import {useEffect,useState} from 'react';
+export default function InlineNote({text,busy,onSave}:{text:string;busy:boolean;onSave:(text:string)=>Promise<boolean|void>}){const [note,N]=useState(text||''),[dirty,D]=useState(false);useEffect(()=>{if(!dirty)N(text||'')},[text,dirty]);return <div className="inline-note"><label>메모<textarea aria-label="업무 메모" rows={Math.min(6,Math.max(1,note.split('\n').length))} maxLength={5000} value={note} onChange={e=>{N(e.target.value);D(true)}} placeholder="특이사항을 기록해주세요"/></label>{dirty&&<div><button disabled={busy} onClick={async()=>{const ok=await onSave(note);if(ok!==false)D(false)}}>메모 저장</button><button disabled={busy} onClick={()=>{N(text||'');D(false)}}>취소</button></div>}</div>}

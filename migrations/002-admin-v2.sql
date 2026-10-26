@@ -1,0 +1,78 @@
+-- APPLY ONLY AFTER VERIFIED FULL DB BACKUP. This file is never run by app startup.
+-- Use the Supabase SQL editor with its existing admin connection. Keep SPACEOPS_ADMIN_V2 unset until validation.
+BEGIN;
+CREATE TABLE IF NOT EXISTS spaceops.workspace_members(email text PRIMARY KEY,display_name text NOT NULL,role text NOT NULL CHECK(role IN ('manager','staff')),spaces text NOT NULL,active boolean NOT NULL DEFAULT true,updated text NOT NULL);
+CREATE TABLE IF NOT EXISTS spaceops.photo_metadata(photo text PRIMARY KEY REFERENCES spaceops.photos(id) ON DELETE CASCADE,phase text NOT NULL CHECK(phase IN ('before','after','legacy')),uploaded_at text NOT NULL,uploader text NOT NULL);
+CREATE TABLE IF NOT EXISTS spaceops.task_reviews(task text PRIMARY KEY REFERENCES spaceops.tasks(id) ON DELETE CASCADE,resolved boolean NOT NULL DEFAULT false,checked boolean NOT NULL DEFAULT false,reviewer text NOT NULL,reviewed_at text NOT NULL);
+CREATE TABLE IF NOT EXISTS spaceops.inspection_definitions(id text PRIMARY KEY,category integer NOT NULL CHECK(category BETWEEN 0 AND 5),title text NOT NULL,cycle text NOT NULL CHECK(cycle IN ('daily','weekly','monthly')),required boolean NOT NULL,active boolean NOT NULL);
+CREATE TABLE IF NOT EXISTS spaceops.inspection_records(definition text NOT NULL REFERENCES spaceops.inspection_definitions(id),period text NOT NULL,title_snapshot text NOT NULL,done boolean NOT NULL,note text NOT NULL,actor text NOT NULL,updated text NOT NULL,PRIMARY KEY(definition,period));
+CREATE TABLE IF NOT EXISTS spaceops.settlements(id text PRIMARY KEY,data text NOT NULL,updated text NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS settlement_task_person ON spaceops.settlements ((data::jsonb->>'task'),(coalesce(nullif(data::jsonb->>'workerEmail',''),data::jsonb->>'person')));
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='spaceops_runtime') THEN CREATE ROLE spaceops_runtime NOLOGIN NOBYPASSRLS; END IF; END $$;
+GRANT USAGE ON SCHEMA spaceops TO spaceops_runtime;
+GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA spaceops TO spaceops_runtime;
+GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA spaceops TO spaceops_runtime;
+-- Grant only membership to the existing runtime DB login, do not change its password.
+DO $$ BEGIN EXECUTE format('GRANT spaceops_runtime TO %I',current_user); END $$;
+CREATE OR REPLACE FUNCTION spaceops.actor_role() RETURNS text LANGUAGE sql STABLE AS $$ SELECT coalesce(current_setting('spaceops.role',true),'') $$;
+CREATE OR REPLACE FUNCTION spaceops.actor_email() RETURNS text LANGUAGE sql STABLE AS $$ SELECT coalesce(current_setting('spaceops.email',true),'') $$;
+CREATE OR REPLACE FUNCTION spaceops.actor_id() RETURNS text LANGUAGE sql STABLE AS $$ SELECT coalesce(current_setting('spaceops.user_id',true),'') $$;
+CREATE OR REPLACE FUNCTION spaceops.can_read_task(p text,priv integer,owner_id text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT CASE WHEN priv=1 OR (p::jsonb->>'category')='6' THEN owner_id=spaceops.actor_id() ELSE spaceops.actor_role()='owner' OR (coalesce(nullif(current_setting('spaceops.spaces',true),''),'[]')::jsonb @> jsonb_build_array((p::jsonb->>'category')::integer) AND (spaceops.actor_role()='manager' OR spaceops.actor_role()='staff' AND coalesce(p::jsonb->'assignmentEmails','[]') ? spaceops.actor_email())) END $$;
+ALTER TABLE spaceops.tasks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_tasks ON spaceops.tasks;
+DROP POLICY IF EXISTS app_tasks ON spaceops.tasks;
+CREATE POLICY app_tasks ON spaceops.tasks FOR SELECT TO spaceops_runtime USING(spaceops.can_read_task(payload,private,owner));
+DROP POLICY IF EXISTS app_tasks_insert ON spaceops.tasks;
+CREATE POLICY app_tasks_insert ON spaceops.tasks FOR INSERT TO spaceops_runtime WITH CHECK(spaceops.actor_role() IN ('owner','manager') AND spaceops.can_read_task(payload,private,owner));
+DROP POLICY IF EXISTS app_tasks_update ON spaceops.tasks;
+CREATE POLICY app_tasks_update ON spaceops.tasks FOR UPDATE TO spaceops_runtime USING(spaceops.can_read_task(payload,private,owner)) WITH CHECK(spaceops.can_read_task(payload,private,owner));
+DROP POLICY IF EXISTS app_tasks_delete ON spaceops.tasks;
+CREATE POLICY app_tasks_delete ON spaceops.tasks FOR DELETE TO spaceops_runtime USING(spaceops.actor_role() IN ('owner','manager') AND spaceops.can_read_task(payload,private,owner));
+CREATE OR REPLACE FUNCTION spaceops.guard_staff_task() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF spaceops.actor_role()='staff' AND ((OLD.payload::jsonb-ARRAY['status','note','completedAt','history']) IS DISTINCT FROM (NEW.payload::jsonb-ARRAY['status','note','completedAt','history']) OR OLD.owner<>NEW.owner OR OLD.private<>NEW.private OR OLD.series_id IS DISTINCT FROM NEW.series_id) THEN RAISE EXCEPTION 'Staff may change only status and note'; END IF; RETURN NEW; END $$;
+DROP TRIGGER IF EXISTS guard_staff_task ON spaceops.tasks;
+CREATE TRIGGER guard_staff_task BEFORE UPDATE ON spaceops.tasks FOR EACH ROW EXECUTE FUNCTION spaceops.guard_staff_task();
+ALTER TABLE spaceops.photos ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_photos_read ON spaceops.photos;
+CREATE POLICY app_photos_read ON spaceops.photos FOR SELECT TO spaceops_runtime USING(EXISTS(SELECT 1 FROM spaceops.tasks t WHERE t.id=task));
+DROP POLICY IF EXISTS app_photos_insert ON spaceops.photos;
+CREATE POLICY app_photos_insert ON spaceops.photos FOR INSERT TO spaceops_runtime WITH CHECK(EXISTS(SELECT 1 FROM spaceops.tasks t WHERE t.id=task));
+DROP POLICY IF EXISTS app_photos_delete ON spaceops.photos;
+CREATE POLICY app_photos_delete ON spaceops.photos FOR DELETE TO spaceops_runtime USING(spaceops.actor_role() IN ('owner','manager') AND EXISTS(SELECT 1 FROM spaceops.tasks t WHERE t.id=task));
+ALTER TABLE spaceops.photo_metadata ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_photo_metadata ON spaceops.photo_metadata;
+CREATE POLICY app_photo_metadata ON spaceops.photo_metadata TO spaceops_runtime USING(EXISTS(SELECT 1 FROM spaceops.photos p WHERE p.id=photo)) WITH CHECK(EXISTS(SELECT 1 FROM spaceops.photos p WHERE p.id=photo));
+ALTER TABLE spaceops.workspace_members ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_members ON spaceops.workspace_members;
+CREATE POLICY app_members ON spaceops.workspace_members TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
+ALTER TABLE spaceops.task_reviews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_reviews ON spaceops.task_reviews;
+CREATE POLICY app_reviews ON spaceops.task_reviews TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
+ALTER TABLE spaceops.settlements ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_settlements ON spaceops.settlements;
+CREATE POLICY app_settlements ON spaceops.settlements TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
+ALTER TABLE spaceops.payroll_rates ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_rates ON spaceops.payroll_rates;
+CREATE POLICY app_rates ON spaceops.payroll_rates TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
+ALTER TABLE spaceops.inspection_definitions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_inspection_def_read ON spaceops.inspection_definitions;
+CREATE POLICY app_inspection_def_read ON spaceops.inspection_definitions FOR SELECT TO spaceops_runtime USING(spaceops.actor_role()='owner' OR coalesce(nullif(current_setting('spaceops.spaces',true),''),'[]')::jsonb @> jsonb_build_array(category));
+DROP POLICY IF EXISTS app_inspection_def_write ON spaceops.inspection_definitions;
+CREATE POLICY app_inspection_def_write ON spaceops.inspection_definitions FOR ALL TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
+ALTER TABLE spaceops.inspection_records ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_inspection_records ON spaceops.inspection_records;
+CREATE POLICY app_inspection_records ON spaceops.inspection_records TO spaceops_runtime USING(EXISTS(SELECT 1 FROM spaceops.inspection_definitions d WHERE d.id=definition)) WITH CHECK(spaceops.actor_role()<>'staff' AND EXISTS(SELECT 1 FROM spaceops.inspection_definitions d WHERE d.id=definition));
+ALTER TABLE spaceops.weekly_checks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_weekly_read ON spaceops.weekly_checks;
+CREATE POLICY app_weekly_read ON spaceops.weekly_checks FOR SELECT TO spaceops_runtime USING(spaceops.actor_role()='owner' OR coalesce(nullif(current_setting('spaceops.spaces',true),''),'[]')::jsonb @> jsonb_build_array(category));
+DROP POLICY IF EXISTS app_weekly_write ON spaceops.weekly_checks;
+CREATE POLICY app_weekly_write ON spaceops.weekly_checks FOR ALL TO spaceops_runtime USING(spaceops.actor_role()='owner' OR spaceops.actor_role()='manager' AND coalesce(nullif(current_setting('spaceops.spaces',true),''),'[]')::jsonb @> jsonb_build_array(category)) WITH CHECK(spaceops.actor_role()='owner' OR spaceops.actor_role()='manager' AND coalesce(nullif(current_setting('spaceops.spaces',true),''),'[]')::jsonb @> jsonb_build_array(category));
+ALTER TABLE spaceops.check_template_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS app_templates_read ON spaceops.check_template_settings;
+CREATE POLICY app_templates_read ON spaceops.check_template_settings FOR SELECT TO spaceops_runtime USING(spaceops.actor_role()='owner' OR coalesce(nullif(current_setting('spaceops.spaces',true),''),'[]')::jsonb @> jsonb_build_array(category));
+DROP POLICY IF EXISTS app_templates_write ON spaceops.check_template_settings;
+CREATE POLICY app_templates_write ON spaceops.check_template_settings FOR ALL TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
+REVOKE ALL ON ALL TABLES IN SCHEMA spaceops FROM anon,authenticated;
+COMMIT;
+-- Does not insert sykimcj or reassign legacy/private records. Manager proposal requires separate approval.
+-- Rollback application first: unset SPACEOPS_ADMIN_V2 and return to prior deployment.
+-- Preserve additive tables/metadata as backup. Do not delete records or disable policies without separate review.

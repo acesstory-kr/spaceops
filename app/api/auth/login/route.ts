@@ -1,8 +1,9 @@
+import {memberFor} from '@/lib/members';
 import {supabase,allowedEmail} from '@/lib/supabase';
 export async function POST(req:Request){
  if(req.headers.get('origin')!==new URL(req.url).origin)return new Response(null,{status:403});
  const {email:raw,password}=await req.json();const email=String(raw||'').trim().toLowerCase();
- if(!allowedEmail(email))return Response.json({error:'초대된 이메일인지 확인해주세요.'},{status:403});
+ if(!(await memberFor(email)))return Response.json({error:'초대된 이메일인지 확인해주세요.'},{status:403});
  const s=await supabase();
  if(password){const {error}=await s.auth.signInWithPassword({email,password});return error?Response.json({error:'이메일 또는 비밀번호를 확인해주세요.'},{status:400}):Response.json({ok:true});}
  const {error}=await s.auth.signInWithOtp({email,options:{emailRedirectTo:new URL('/auth/callback',req.url).toString()}});
