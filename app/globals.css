@@ -198,3 +198,36 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
  .mobile-inspection-heading button{white-space:nowrap;min-height:44px;font-size:12px;padding:6px 8px}
 }
 @media(max-width:360px){.shell>header .brand-copy{display:none}.mobile-inspection-heading h2{font-size:16px}.mobile-inspection-heading select{width:90px}}
+
+/* Restore automatic payroll and give all admin work a shared space context. */
+.admin-space-navigation,.payroll-mode-switch{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.admin-space-navigation button,.payroll-mode-switch button{min-height:44px;font-size:13px}
+.admin-space-navigation button[aria-pressed=true],.payroll-mode-switch button[aria-pressed=true]{font-weight:700;border-color:#bcaab3;background:#f4f1f3}
+.admin-panel .payroll-page{padding:14px;background:white;border:1px solid #e4dce2;border-radius:12px}
+.payroll-page>input[type=month]{width:auto;max-width:100%;margin:10px 0}
+.payroll-page>p{font-size:12px;line-height:1.7;margin:8px 0}
+.payroll-page>h3{margin:16px 0 8px;font-size:16px}
+.payroll-rate{display:flex;align-items:center;gap:8px;max-width:500px;justify-content:space-between;font-size:13px;margin:7px 0}
+.payroll-rate input{width:130px}
+.shell:not([data-calendar=true])>header .monthnav{display:none}
+.shell>header .header-action{position:relative;width:44px;height:44px;min-height:44px;padding:10px;border:0;background:transparent!important;color:inherit!important}
+.header-action .header-action-text{display:none}
+.header-action .mobile-action-icon{display:inline-flex}
+.shell>header .headright{gap:6px}
+.events .calendar-expand{background:transparent!important;font-weight:400;font-size:10px;padding:2px 3px!important;min-height:24px}
+@media(min-width:981px){
+ .shell>header{height:76px;padding:12px 22px}
+ .workspace{min-height:calc(100vh - 76px)}
+ .workspace main{padding-top:16px}
+ .week div{padding:9px 0}
+ .day{padding:4px}
+ .number{height:21px;width:23px;margin-bottom:3px;font-size:11px}
+ .events{gap:3px}
+ .events button{padding:3px 5px;font-size:10px;line-height:1.25}
+ .events .calendar-event-space{font-size:10px}
+ .events .calendar-event-title{display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+ .events .calendar-event-time{display:none}
+ .days{align-items:stretch}
+ .admin-photo-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){.admin-space-navigation{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.admin-space-navigation button{padding:6px 3px;font-size:11px}.payroll-mode-switch button{flex:1;font-size:12px}.admin-panel .payroll-page{padding:10px}.payroll-rate{font-size:12px}}
