@@ -252,3 +252,47 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
 .modal-daily-work .selectable-photo-grid{max-width:100%}
 @media(min-width:981px){.modal:has(.modal-daily-work){max-width:760px}}
 @media(max-width:650px){.modal-daily-work{margin-bottom:14px;padding-bottom:12px}.modal-daily-work .taskbody{padding:10px}.modal-daily-work .taskhead{padding:12px}}
+
+/* Mobile header and weekly controls: desktop rules above remain unchanged. */
+.mobile-menu,.mobile-weekly-controls{display:none}
+@media(max-width:650px){
+ .shell>header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 6px;padding:8px 16px;min-height:60px;height:auto}
+ .shell>header .brand{min-width:0;gap:8px;white-space:nowrap}
+ .shell>header .brandmark{flex:0 0 28px;width:28px;height:32px}
+ .shell>header .brand-copy{display:block;min-width:0}
+ .shell>header .mobile-brand-name{display:block;font-size:13px;letter-spacing:-.3px}
+ .shell>header .headright{display:flex;align-items:center;flex-wrap:nowrap;gap:0;margin-left:0;min-width:0}
+ .shell>header .headright>.header-service,.shell>header .headright>.mobile-header-refresh,.shell>header .headright>.avatar{display:none}
+ .shell>header .header-action,.mobile-icon-button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;border:0;padding:10px;background:transparent;border-radius:11px;color:#625961}
+ .shell>header .header-action svg{width:23px;height:23px;stroke-width:2}
+ .shell>header .add-calendar-action{color:#C65375!important;background:#FCEAF0!important}
+ .shell>header .monthnav{grid-column:1/-1;grid-row:2;justify-content:center;margin:0;gap:4px;min-width:0}
+ .mobile-menu{display:block;position:relative;flex:none}
+ .mobile-menu-panel{position:absolute;right:0;top:48px;width:230px;max-width:calc(100vw - 32px);padding:8px;background:#fff;border:1px solid #eee4e9;border-radius:14px;box-shadow:0 8px 28px #5536451c;z-index:65}
+ .mobile-menu-panel p{font-size:11px;color:#8e7f87;margin:8px 10px 4px}
+ .mobile-menu-panel a,.mobile-menu-panel button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:10px;border:0;border-radius:10px;background:transparent;color:#514a50;font-size:13px;text-decoration:none;text-align:left;justify-content:flex-start}
+ .mobile-menu-panel a>svg:last-child{margin-left:auto}
+ .mobile-menu-panel img{width:23px;height:23px;object-fit:contain}
+ .mobile-menu-panel a:hover,.mobile-menu-panel button:hover{background:#fcf1f5}
+ .mobile-icon-button:focus-visible,.header-action:focus-visible{outline:2px solid #c65375;outline-offset:1px}
+ .shell .workspace main{padding-left:16px;padding-right:16px;min-width:0}
+ .shell[data-view="주간 업무"] .toolbar{display:none}
+ .weekly-tasks>.weekly-nav,.weekly-tasks>.hint{display:none}
+ .mobile-weekly-controls{display:block;margin-bottom:10px}
+ .mobile-weekly-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+ .mobile-weekly-title h2{font-size:18px;margin:0;white-space:nowrap}
+ .mobile-weekly-title>div{display:flex;align-items:center;gap:0}
+ .mobile-week-range{display:flex;justify-content:center;align-items:center;gap:8px}
+ .mobile-week-range>div{min-width:136px;text-align:center;display:grid;justify-items:center}
+ .mobile-week-range b{font-size:14px;color:#655660;font-variant-numeric:tabular-nums}
+ .mobile-week-range small{display:block;color:#96808b;font-size:11px;margin-top:4px}
+ .return-current-week{border:0;background:transparent;color:#a44b69;font-size:12px;min-height:44px;padding:4px 12px}
+ .weekly-tasks{padding:12px;min-width:0}
+ .weekly-days{gap:8px}
+ .weekly-day-title{gap:4px}
+ .weekly-row{padding:8px}
+ .mobile-bottom-nav button{min-width:0;font-size:10px;white-space:nowrap}
+ .install-strip,.connection-banner,.update-banner,.review-banner{font-size:11px;line-height:1.4;padding:6px 12px;gap:6px}
+ .review-role{padding:5px 12px;gap:5px}
+ .review-role button{min-height:36px;padding:6px 8px}
+}

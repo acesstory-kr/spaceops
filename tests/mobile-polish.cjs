@@ -1,0 +1,20 @@
+const fs=require('fs'),vm=require('vm'),ts=require('typescript'),assert=require('assert/strict'),{JSDOM}=require('jsdom');
+const dom=new JSDOM('<div id="root"></div>',{url:'https://example.invalid/review'});
+Object.assign(global,{window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,IS_REACT_ACT_ENVIRONMENT:true});Object.defineProperty(global,'navigator',{value:dom.window.navigator,configurable:true});
+const React=require('react'),{createRoot}=require('react-dom/client'),{act}=React;let shared='',copied='',edited=0,toggled=0;
+Object.defineProperty(navigator,'share',{value:async x=>{shared=x.text},configurable:true});Object.defineProperty(navigator,'clipboard',{value:{writeText:async x=>{copied=x}},configurable:true});
+function load(f){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:n=>n==='./mobile-menu'?{default:load('app/mobile-menu.tsx').default}:n==='./space-labels'?{spaceNames:['홍대'],spaceColors:['#ffe0e4'],dayProgress:t=>({done:0,total:t.length,inProgress:0})}:require(n),document,window,navigator,console,Date});return exports;}
+const Weekly=load('app/weekly-tasks.tsx').default,root=createRoot(document.getElementById('root'));
+const day=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'});const task={id:'a',date:day,title:'청소',category:0,start:'10:00',status:'미진행',assignee:'담당자'};
+const button=label=>document.querySelector(`[aria-label="${label}"]`);
+(async()=>{await act(async()=>root.render(React.createElement(Weekly,{tasks:[task],onEdit:()=>edited++,onToggle:()=>toggled++})));
+assert.equal(document.querySelector('.mobile-week-range small').textContent,'이번 주');
+await act(async()=>button('이전 주').click());assert(document.querySelector('.return-current-week'));await act(async()=>document.querySelector('.return-current-week').click());assert(document.querySelector('.mobile-week-range small'));
+await act(async()=>button('다음 주').click());await act(async()=>document.querySelector('.return-current-week').click());
+await act(async()=>document.querySelector('.weekly-check').click());assert.equal(toggled,1);await act(async()=>document.querySelector('.weekly-row-detail').click());assert.equal(edited,1);
+await act(async()=>button('주간 업무 공유').click());assert(shared.includes('청소'));
+await act(async()=>button('주간 업무 더보기').click());assert.equal(button('주간 업무 더보기').getAttribute('aria-expanded'),'true');
+await act(async()=>document.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'Escape'})));assert.equal(button('주간 업무 더보기').getAttribute('aria-expanded'),'false');
+await act(async()=>button('주간 업무 더보기').click());await act(async()=>document.querySelector('.mobile-menu-panel button').click());assert(document.querySelector('[role="dialog"]'));assert.equal(button('주간 업무 더보기').getAttribute('aria-expanded'),'false');
+await act(async()=>[...document.querySelectorAll('.modalactions button')].find(x=>x.textContent==='메시지 복사').click());assert(copied.includes('청소'));
+await act(async()=>root.unmount());console.log('PASS: weekly previous/next/current; completion/edit; native share; more/preview/copy; Escape closes and restores focus.');})().catch(e=>{console.error(e);process.exitCode=1});
