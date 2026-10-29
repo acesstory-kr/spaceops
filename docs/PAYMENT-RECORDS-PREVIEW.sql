@@ -5,5 +5,7 @@ REVOKE ALL ON spaceops.payment_records FROM PUBLIC,anon,authenticated;
 GRANT SELECT,INSERT ON spaceops.payment_records TO spaceops_runtime;
 DROP POLICY IF EXISTS app_payments ON spaceops.payment_records;
 CREATE POLICY app_payments ON spaceops.payment_records TO spaceops_runtime USING(spaceops.actor_role()='owner') WITH CHECK(spaceops.actor_role()='owner');
+DROP POLICY IF EXISTS manager_payments_read ON spaceops.payment_records;
+CREATE POLICY manager_payments_read ON spaceops.payment_records FOR SELECT TO spaceops_runtime USING(spaceops.actor_role()='manager');
 -- Rollback: remove app navigation first; retain records. Revoke runtime INSERT if necessary.
 -- Do not drop payment_records or delete history to roll back the UI.

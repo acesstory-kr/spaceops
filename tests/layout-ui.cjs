@@ -12,6 +12,7 @@ function load(file){const exports={};vm.runInNewContext(ts.transpileModule(fs.re
  if(n==='./weekly-tasks')return {default:props=>React.createElement('button',{onClick:()=>props.onEdit(props.tasks[0])},'예시 주간업무 열기')};
  if(n==='./space-labels')return {spaceNames:spaces};
  if(n==='./scheduling')return {moveDay:(key,n)=>{let d=new Date(key+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)},scheduleDates:()=>[]};
+ if(n==='./payroll')return {default:props=>React.createElement('section',{className:'payroll-page','data-readonly':String(props.readOnly)},'청소 인건비 정산')};
  if(n.startsWith('./'))return {default:noop};
  return require(n);
  },window,document,location:window.location,sessionStorage:window.sessionStorage,navigator,matchMedia:()=>({matches:desktop,addEventListener(){},removeEventListener(){}}),addEventListener(){},removeEventListener(){},setInterval:()=>1,clearInterval(){},setTimeout,clearTimeout,Date,URLSearchParams,console});return exports.default}
@@ -44,13 +45,19 @@ await act(async()=>document.querySelector('[aria-label="앱 내부 알림"]').cl
 await act(async()=>document.querySelector('[aria-label="내 개인 일정"]').click());assert(document.querySelector('[aria-label="사업 관리"]'));
 
 await act(async()=>document.querySelector('[aria-label="표시할 월 선택"]').click());assert(document.querySelector('input[type=month]'));
-assert.deepEqual([...document.querySelectorAll('.mobile-bottom-nav span')].map(x=>x.textContent),['홈','달력','주간업무','점검항목']);
+assert.deepEqual([...document.querySelectorAll('.mobile-bottom-nav span')].map(x=>x.textContent),['홈','달력','주간업무','점검항목','인건비 정산']);
 await act(async()=>r.unmount());
 window.sessionStorage.clear();
 const managerRoot=createRoot(document.getElementById('root'));
 await act(async()=>managerRoot.render(React.createElement(Dashboard,{demo:true,demoRole:'manager'})));
 assert(document.querySelector('[aria-label="내 개인 일정"]'));
 assert(!document.body.textContent.includes('예시 최고 관리자'));
+assert([...document.querySelectorAll('.mobile-bottom-nav span')].some(x=>x.textContent==='인건비 정산'));
+await act(async()=>[...document.querySelectorAll('.mobile-bottom-nav button')].find(x=>x.textContent==='인건비 정산').click());
+assert(document.querySelector('.payroll-page'));
+assert(!document.body.textContent.includes('단가 저장'));
+assert(!document.body.textContent.includes('지급 기록 남기기'));
+await act(async()=>document.querySelector('.mobile-bottom-nav button').click());
 await act(async()=>document.querySelector('[aria-label="내 개인 일정"]').click());
 assert(document.body.textContent.includes('운영 매니저 개인 일정'));
 assert(!document.body.textContent.includes('최고 관리자 개인 일정'));
