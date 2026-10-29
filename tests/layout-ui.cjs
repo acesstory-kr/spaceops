@@ -15,7 +15,7 @@ function load(file){const exports={};vm.runInNewContext(ts.transpileModule(fs.re
 (async()=>{const root=createRoot(document.getElementById('root')),Dashboard=load('app/dashboard.tsx');
 await act(async()=>root.render(React.createElement(Dashboard,{demo:true})));
 assert(document.querySelector('.calendar'));assert(document.querySelector('.calendar-daily .home-daily-work'));
-assert.deepEqual([...document.querySelectorAll('.sidebar nav button')].map(b=>b.textContent),['달력','주간업무','점검항목','관리자']);
+assert.deepEqual([...document.querySelectorAll('.sidebar nav button')].map(b=>b.textContent),['달력','주간업무','점검항목','인건비 정산','관리자']);
 const day=document.querySelector('.day[aria-label="2026-10-27"]');
 if(day){await act(async()=>day.click());assert(document.querySelector('.calendar'));assert(document.querySelector('.calendar-daily').textContent.includes('청소'));}
 await act(async()=>root.unmount());

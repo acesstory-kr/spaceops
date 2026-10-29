@@ -231,3 +231,13 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
  .admin-photo-list{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:650px){.admin-space-navigation{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.admin-space-navigation button{padding:6px 3px;font-size:11px}.payroll-mode-switch button{flex:1;font-size:12px}.admin-panel .payroll-page{padding:10px}.payroll-rate{font-size:12px}}
+
+.header-service{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;flex:0 0 38px;border:1px solid #ece7eb;border-radius:9px;background:white}
+.header-service img{max-width:28px;max-height:28px;object-fit:contain}
+@media(max-width:650px){.shell>header{flex-wrap:wrap}.shell>header .headright{flex-wrap:wrap;justify-content:flex-end;gap:2px}.header-service{width:32px;height:36px;flex-basis:32px}.header-service img{max-width:25px;max-height:25px}}
+.review-role{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#faf4f7;font-size:12px}
+.review-role button{font-size:12px;min-height:40px}
+.review-role button[aria-pressed=true]{background:#e9dce3;font-weight:700}
+.payment-ledger{border-top:1px solid #e4dce2;margin-top:20px;padding-top:12px}
+.payment-ledger>label{display:flex;gap:10px;align-items:center;margin:12px 0;font-size:13px}
+.payment-ledger>label input{max-width:180px}

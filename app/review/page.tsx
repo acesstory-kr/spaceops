@@ -1,3 +1,3 @@
-import Dashboard from '../dashboard';
+import ReviewClient from './review-client';
 export const metadata={robots:{index:false,follow:false}};
-export default function Review(){return <Dashboard demo/>}
+export default function Review(){return <ReviewClient/>}
