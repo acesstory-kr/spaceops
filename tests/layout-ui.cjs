@@ -22,7 +22,7 @@ assert.deepEqual([...document.querySelectorAll('.sidebar nav button')].map(b=>b.
 const day=document.querySelector('.day[aria-label="2026-10-27"]');
 if(day){await act(async()=>day.click());assert(document.querySelector('.calendar'));assert(document.querySelector('.calendar-daily').textContent.includes('청소'));}
 assert.equal(document.querySelector('.header-service').getAttribute('href'),'https://space.cheongsosiljang.kr/calendar?month=2026-10-01&property_id=5');
-assert(document.querySelector('.header-service img').getAttribute('src').endsWith('-symbol.svg'));
+assert(document.querySelector('.header-service img').getAttribute('src').endsWith('spacemanager-brand.png'));
 await act(async()=>[...document.querySelectorAll('.sidebar nav button')].find(b=>b.textContent==='주간업무').click());
 await act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent==='예시 주간업무 열기').click());
 assert.equal(document.querySelector('.modal-daily-work [data-photo-count]').getAttribute('data-photo-count'),'1');
@@ -45,5 +45,15 @@ await act(async()=>document.querySelector('[aria-label="내 개인 일정"]').cl
 
 await act(async()=>document.querySelector('[aria-label="표시할 월 선택"]').click());assert(document.querySelector('input[type=month]'));
 assert.deepEqual([...document.querySelectorAll('.mobile-bottom-nav span')].map(x=>x.textContent),['홈','달력','주간업무','점검항목']);
-await act(async()=>r.unmount());console.log('PASS: desktop calendar + shared daily cards, four sidebar items, mobile navigation unchanged, day/today controls, month picker.');
+await act(async()=>r.unmount());
+window.sessionStorage.clear();
+const managerRoot=createRoot(document.getElementById('root'));
+await act(async()=>managerRoot.render(React.createElement(Dashboard,{demo:true,demoRole:'manager'})));
+assert(document.querySelector('[aria-label="내 개인 일정"]'));
+assert(!document.body.textContent.includes('예시 최고 관리자'));
+await act(async()=>document.querySelector('[aria-label="내 개인 일정"]').click());
+assert(document.body.textContent.includes('운영 매니저 개인 일정'));
+assert(!document.body.textContent.includes('최고 관리자 개인 일정'));
+await act(async()=>managerRoot.unmount());
+console.log('PASS: desktop calendar + shared daily cards, four sidebar items, mobile navigation unchanged, day/today controls, month picker.');
 })().catch(e=>{console.error(e);process.exitCode=1});
