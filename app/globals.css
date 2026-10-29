@@ -241,3 +241,14 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
 .payment-ledger{border-top:1px solid #e4dce2;margin-top:20px;padding-top:12px}
 .payment-ledger>label{display:flex;gap:10px;align-items:center;margin:12px 0;font-size:13px}
 .payment-ledger>label input{max-width:180px}
+
+.header-service img{width:25px;height:25px;object-fit:contain}
+.modal-daily-work{margin:4px 0 22px;padding-bottom:16px;border-bottom:1px solid #e4dce2}
+.modal-daily-work>h3{font-size:15px;margin-bottom:10px}
+.modal-daily-work .task{margin-bottom:0}
+.modal-daily-work .taskhead h3{font-size:17px}
+.modal-daily-work .photo-capture-groups{grid-template-columns:repeat(2,minmax(0,1fr))}
+.modal-daily-work .photo-workbench{min-width:0}
+.modal-daily-work .selectable-photo-grid{max-width:100%}
+@media(min-width:981px){.modal:has(.modal-daily-work){max-width:760px}}
+@media(max-width:650px){.modal-daily-work{margin-bottom:14px;padding-bottom:12px}.modal-daily-work .taskbody{padding:10px}.modal-daily-work .taskhead{padding:12px}}

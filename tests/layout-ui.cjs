@@ -6,7 +6,10 @@ const React=require('react'),{createRoot}=require('react-dom/client'),{act}=Reac
 let desktop=true;
 const noop=()=>null, spaces=['홍대연습실','합정연습실','파티룸','밍글룸','혜화','상수','개인'];
 function load(file){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:n=>{
- if(n==='./demo-data')return {demoTasks:()=>[{id:'a',title:'청소',assignee:'예시 담당자',request:'',end:'11:00',date:'2026-10-27',start:'10:00',category:0,status:'미진행',note:'메모',photos:[]}]};
+ if(n==='./demo-data')return {demoTasks:()=>[{id:'a',title:'청소',assignee:'예시 담당자',request:'',end:'11:00',date:'2026-10-27',start:'10:00',category:0,status:'미진행',note:'메모',photos:[{id:'preview-photo',phase:'before',name:'업로드한 청소 전 사진'}]}]};
+ if(n==='./bulk-tasks')return {legacyMatch:()=>false,commonChanges:()=>({})};
+ if(n==='./photo-workbench')return {default:({task})=>React.createElement('div',{'data-photo-count':task.photos.length},task.photos.map(p=>p.name).join(','))};
+ if(n==='./weekly-tasks')return {default:props=>React.createElement('button',{onClick:()=>props.onEdit(props.tasks[0])},'예시 주간업무 열기')};
  if(n==='./space-labels')return {spaceNames:spaces};
  if(n==='./scheduling')return {moveDay:(key,n)=>{let d=new Date(key+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)},scheduleDates:()=>[]};
  if(n.startsWith('./'))return {default:noop};
@@ -18,8 +21,18 @@ assert(document.querySelector('.calendar'));assert(document.querySelector('.cale
 assert.deepEqual([...document.querySelectorAll('.sidebar nav button')].map(b=>b.textContent),['달력','주간업무','점검항목','인건비 정산','관리자']);
 const day=document.querySelector('.day[aria-label="2026-10-27"]');
 if(day){await act(async()=>day.click());assert(document.querySelector('.calendar'));assert(document.querySelector('.calendar-daily').textContent.includes('청소'));}
+assert.equal(document.querySelector('.header-service').getAttribute('href'),'https://space.cheongsosiljang.kr/calendar?month=2026-10-01&property_id=5');
+assert(document.querySelector('.header-service img').getAttribute('src').endsWith('-symbol.svg'));
+await act(async()=>[...document.querySelectorAll('.sidebar nav button')].find(b=>b.textContent==='주간업무').click());
+await act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent==='예시 주간업무 열기').click());
+assert.equal(document.querySelector('.modal-daily-work [data-photo-count]').getAttribute('data-photo-count'),'1');
+assert(document.querySelector('.modal-daily-work').textContent.includes('업로드한 청소 전 사진'));
+assert(!document.querySelector('.modal-daily-work form'));
+await act(async()=>[...document.querySelectorAll('.modal-daily-work .status')].find(b=>b.textContent.includes('완료')&&!b.textContent.includes('미완료')).click());
+const statusSelect=[...document.querySelectorAll('.modal form select')].find(s=>[...s.options].some(o=>o.value==='진행중'));
+assert.equal(statusSelect.value,'완료');
 await act(async()=>root.unmount());
-desktop=false;const r=createRoot(document.getElementById('root'));await act(async()=>r.render(React.createElement(Dashboard,{demo:true})));
+window.sessionStorage.clear();desktop=false;const r=createRoot(document.getElementById('root'));await act(async()=>r.render(React.createElement(Dashboard,{demo:true})));
 assert(!document.querySelector('.calendar'));assert(document.querySelector('.today-summary'));assert(document.querySelector('.brandmark svg'));assert(document.querySelector('.mobile-date-trigger input[aria-label="업무 날짜 선택"]'));assert(document.querySelector('.tomorrow-control'));
 const next=document.querySelector('[aria-label="다음 날 업무"]');await act(async()=>next.click());
 assert(document.querySelector('.progressline').textContent.includes('선택한 날'));
