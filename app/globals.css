@@ -296,3 +296,5 @@ html{scroll-padding-bottom:100px}body{padding-top:env(safe-area-inset-top)}.inst
  .review-role{padding:5px 12px;gap:5px}
  .review-role button{min-height:36px;padding:6px 8px}
 }
+
+.source-card .source-delete{color:#a24761;border-color:#ead8de;background:#fff;margin-left:6px;min-height:44px}

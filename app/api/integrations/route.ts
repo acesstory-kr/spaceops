@@ -20,3 +20,14 @@ const body:any=await req.json();if(body.action==='sync')return json(await syncAl
 if(!body.name?.trim()||body.name.length>100||![1,2,3,4,5].includes(body.category))return json({error:'달력 이름과 연결할 숙소를 선택해주세요.'},400);let url:string;try{url=checkAirbnbURL(body.url||'')}catch(e:any){return json({error:e.message},400)}const duplicate=await dbFor(u).prepare('SELECT id FROM calendar_sources WHERE url=?').bind(url).first();if(duplicate)return json({error:'이미 추가한 달력입니다. 기존 달력에서 동기화해주세요.'},400);
 let parsed;try{parsed=await fetchCalendar(url,body.category)}catch(e:any){return json({error:e.message||'달력에 연결하지 못했습니다.'},400)}const source={id:crypto.randomUUID(),owner:u.userId,name:body.name.trim(),category:body.category,url};await dbFor(u).prepare('INSERT INTO calendar_sources(id,owner,name,category,url,enabled) VALUES(?,?,?,?,?,1)').bind(source.id,source.owner,source.name,source.category,url).run();try{return json({id:source.id,result:await syncSource(source,parsed)})}catch{await dbFor(u).prepare('UPDATE calendar_sources SET last_error=? WHERE id=?').bind('초기 동기화에 실패했습니다. 다시 동기화해주세요.',source.id).run();return json({id:source.id,error:'달력은 연결되었지만 초기 동기화가 완료되지 않았습니다. 다시 동기화해주세요.'},503)}
 }
+
+// Remove only the connection; task/photo history and sync mappings are retained.
+export async function DELETE(req:Request){
+ const u=await getChatGPTUser();if(!u)return json({error:'로그인이 필요합니다.'},401);
+ if(u.role!=='owner')return json({error:'최고 관리자만 달력 연결을 삭제할 수 있습니다.'},403);
+ if(req.headers.get('origin')&&req.headers.get('origin')!==new URL(req.url).origin)return json({error:'요청 출처를 확인해주세요.'},403);
+ let body:any;try{body=await req.json()}catch{return json({error:'삭제할 달력을 선택해주세요.'},400)}
+ if(typeof body?.id!=='string'||!body.id.trim()||body.id.length>200)return json({error:'삭제할 달력을 선택해주세요.'},400);
+ try{const r=await dbFor(u).prepare('DELETE FROM calendar_sources WHERE id=?').bind(body.id).run();if(!r.meta.changes)return json({error:'이미 삭제되었거나 연결된 달력을 찾을 수 없습니다.'},404);return json({ok:true,preservedHistory:true});}
+ catch{return json({error:'달력 연결을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.'},503)}
+}
